@@ -3,9 +3,12 @@ title: "RNA-seq Assessment"
 author: "2407447"
 output: html_document
 ---
+
 ## Task 1: Load Count Data and Sample Description
 
 In this task, we load the RNA-seq count matrix and the sample description file. These datasets will be used for downstream analysis.
+
+```{r}
 # Load the count data (CSV file)
 count_data <- read.csv("C:/Users/Asus/OneDrive/Desktop/LMS_RNAseq_short-master-2023-final/course/exercises/data/exercise1_counts.csv", 
                        row.names = 1)
@@ -13,4 +16,18 @@ count_data <- read.csv("C:/Users/Asus/OneDrive/Desktop/LMS_RNAseq_short-master-2
 # Load the sample description file (tab-delimited)
 sample_description <- read.delim("C:/Users/Asus/OneDrive/Desktop/LMS_RNAseq_short-master-2023-final/course/exercises/data/exercise1_sample_description.info", 
                                  header = TRUE, sep = "\t")
+
+# Create col_data using sample_description
+col_data <- sample_description
+rownames(col_data) <- col_data$sample
+
+# Check dimensions of count_data and col_data
+dim(count_data)
+dim(col_data)
+
+# Preview the data
+head(count_data)
+head(col_data)
+
+
 

@@ -358,16 +358,56 @@ display: none;
 <div id="task-1-load-count-data-and-sample-description" class="section level2">
 <h2>Task 1: Load Count Data and Sample Description</h2>
 <p>In this task, we load the RNA-seq count matrix and the sample
-description file. These datasets will be used for downstream analysis. #
-Load the count data (CSV file) count_data &lt;-
-read.csv(“C:/Users/Asus/OneDrive/Desktop/LMS_RNAseq_short-master-2023-final/course/exercises/data/exercise1_counts.csv”,
-row.names = 1)</p>
-</div>
-<div id="load-the-sample-description-file-tab-delimited" class="section level1">
-<h1>Load the sample description file (tab-delimited)</h1>
-<p>sample_description &lt;-
-read.delim(“C:/Users/Asus/OneDrive/Desktop/LMS_RNAseq_short-master-2023-final/course/exercises/data/exercise1_sample_description.info”,
-header = TRUE, sep = “)</p>
+description file. These datasets will be used for downstream
+analysis.</p>
+<pre class="r"><code># Load the count data (CSV file)
+count_data &lt;- read.csv(&quot;C:/Users/Asus/OneDrive/Desktop/LMS_RNAseq_short-master-2023-final/course/exercises/data/exercise1_counts.csv&quot;, 
+                       row.names = 1)
+
+# Load the sample description file (tab-delimited)
+sample_description &lt;- read.delim(&quot;C:/Users/Asus/OneDrive/Desktop/LMS_RNAseq_short-master-2023-final/course/exercises/data/exercise1_sample_description.info&quot;, 
+                                 header = TRUE, sep = &quot;\t&quot;)
+
+# Create col_data using sample_description
+col_data &lt;- sample_description
+rownames(col_data) &lt;- col_data$sample
+
+# Check dimensions of count_data and col_data
+dim(count_data)</code></pre>
+<pre><code>## [1] 26301     9</code></pre>
+<pre class="r"><code>dim(col_data)</code></pre>
+<pre><code>## [1] 9 4</code></pre>
+<pre class="r"><code># Preview the data
+head(count_data)</code></pre>
+<pre><code>##           control_FFa1.bam control_FFa2.bam control_FFa3.bam mutant_KOa1.bam
+## 497097                  16               16                0              21
+## 100503874               20                0                0              64
+## 100038431                0                0                2               0
+## 19888                   11                0               10             113
+## 20671                   14               16                0              40
+## 27395                  465              193              596             436
+##           mutant_KOa2.bam mutant_KOa3.bam mutant_KOb1.bam mutant_KOb2.bam
+## 497097                 16              27              20               0
+## 100503874               0               4               5               0
+## 100038431               0               8               0               0
+## 19888                   0              26              14               6
+## 20671                   8              33              33              12
+## 27395                 686             572            1378            1901
+##           mutant_KOb3.bam
+## 497097                  2
+## 100503874               2
+## 100038431               0
+## 19888                  16
+## 20671                  24
+## 27395                1553</code></pre>
+<pre class="r"><code>head(col_data)</code></pre>
+<pre><code>##                 filename sample condition batch
+## FFa1    control_FFa1.bam   FFa1       FFa     a
+## FFa2    control_FFa2.bam   FFa2       FFa     b
+## FFa3    control_FFa3.bam   FFa3       FFa     c
+## KOa1 TMC_mutant_KOa1.bam   KOa1       KOa     a
+## KOa2 TMC_mutant_KOa2.bam   KOa2       KOa     b
+## KOa3 TMC_mutant_KOa3.bam   KOa3       KOa     c</code></pre>
 </div>
 
 
