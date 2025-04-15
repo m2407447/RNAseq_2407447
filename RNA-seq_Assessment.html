@@ -357,9 +357,6 @@ display: none;
 
 <div id="task-1-load-count-data-and-sample-description" class="section level2">
 <h2>Task 1: Load Count Data and Sample Description</h2>
-<p>In this task, we load the RNA-seq count matrix and the sample
-description file. These datasets will be used for downstream
-analysis.</p>
 <pre class="r"><code># Load the count data (CSV file)
 count_data &lt;- read.csv(&quot;C:/Users/Asus/OneDrive/Desktop/LMS_RNAseq_short-master-2023-final/course/exercises/data/exercise1_counts.csv&quot;, 
                        row.names = 1)
@@ -408,6 +405,34 @@ head(count_data)</code></pre>
 ## KOa1 TMC_mutant_KOa1.bam   KOa1       KOa     a
 ## KOa2 TMC_mutant_KOa2.bam   KOa2       KOa     b
 ## KOa3 TMC_mutant_KOa3.bam   KOa3       KOa     c</code></pre>
+<pre class="r"><code># Add the correct prefix and remove &quot;.bam&quot; from sample names in col_data
+col_data$sample &lt;- paste(col_data$condition, col_data$sample, sep = &quot;_&quot;)
+col_data$sample &lt;- gsub(&quot;.bam$&quot;, &quot;&quot;, col_data$sample)  # Remove &quot;.bam&quot; if it exists
+
+# Reorder col_data so that its rows match the column names in count_data
+col_data &lt;- col_data[match(colnames(count_data), col_data$sample), ]
+
+# Check if the names now match
+all(colnames(count_data) == rownames(col_data))  # Should return TRUE</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<pre class="r"><code># Create a new data frame for the missing samples
+missing_samples &lt;- data.frame(
+  filename = c(&quot;TMC_mutant_KOb1.bam&quot;, &quot;TMC_mutant_KOb2.bam&quot;, &quot;TMC_mutant_KOb3.bam&quot;),
+  sample = c(&quot;KOb1&quot;, &quot;KOb2&quot;, &quot;KOb3&quot;),
+  condition = c(&quot;KOa&quot;, &quot;KOa&quot;, &quot;KOa&quot;),
+  batch = c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;),
+  row.names = c(&quot;KOb1&quot;, &quot;KOb2&quot;, &quot;KOb3&quot;)
+)
+
+# Add the new rows to col_data
+col_data &lt;- rbind(col_data, missing_samples)
+
+# Reorder col_data so that its rows match the column names in count_data
+col_data &lt;- col_data[match(colnames(count_data), col_data$sample), ]
+
+# Check if the names now match
+all(colnames(count_data) == rownames(col_data))  # Should return TRUE</code></pre>
+<pre><code>## [1] FALSE</code></pre>
 </div>
 
 

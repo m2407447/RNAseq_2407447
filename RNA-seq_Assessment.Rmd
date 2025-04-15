@@ -6,9 +6,7 @@ output: html_document
 
 ## Task 1: Load Count Data and Sample Description
 
-In this task, we load the RNA-seq count matrix and the sample description file. These datasets will be used for downstream analysis.
-
-```{r}
+```{r task1_load_data}
 # Load the count data (CSV file)
 count_data <- read.csv("C:/Users/Asus/OneDrive/Desktop/LMS_RNAseq_short-master-2023-final/course/exercises/data/exercise1_counts.csv", 
                        row.names = 1)
@@ -29,5 +27,32 @@ dim(col_data)
 head(count_data)
 head(col_data)
 
+# Add the correct prefix and remove ".bam" from sample names in col_data
+col_data$sample <- paste(col_data$condition, col_data$sample, sep = "_")
+col_data$sample <- gsub(".bam$", "", col_data$sample)  # Remove ".bam" if it exists
+
+# Reorder col_data so that its rows match the column names in count_data
+col_data <- col_data[match(colnames(count_data), col_data$sample), ]
+
+# Check if the names now match
+all(colnames(count_data) == rownames(col_data))  # Should return TRUE
+
+# Create a new data frame for the missing samples
+missing_samples <- data.frame(
+  filename = c("TMC_mutant_KOb1.bam", "TMC_mutant_KOb2.bam", "TMC_mutant_KOb3.bam"),
+  sample = c("KOb1", "KOb2", "KOb3"),
+  condition = c("KOa", "KOa", "KOa"),
+  batch = c("a", "b", "c"),
+  row.names = c("KOb1", "KOb2", "KOb3")
+)
+
+# Add the new rows to col_data
+col_data <- rbind(col_data, missing_samples)
+
+# Reorder col_data so that its rows match the column names in count_data
+col_data <- col_data[match(colnames(count_data), col_data$sample), ]
+
+# Check if the names now match
+all(colnames(count_data) == rownames(col_data))  # Should return TRUE
 
 
