@@ -1,58 +1,59 @@
 ---
-title: "RNA-seq Assessment"
-author: "2407447"
-output: html_document
+title: "RNASeq"
+author: "m2407447"
+output:
+  html_document: default
+  pdf_document: default
 ---
 
-## Task 1: Load Count Data and Sample Description
+```{r load-data-counts, message=FALSE, warning=FALSE}
+# Load the required libraries
+library("DESeq2")
+library("ggplot2")
 
-```{r task1_load_data}
-# Load the count data (CSV file)
-count_data <- read.csv("C:/Users/Asus/OneDrive/Desktop/LMS_RNAseq_short-master-2023-final/course/exercises/data/exercise1_counts.csv", 
-                       row.names = 1)
+# Load the count data
+counts <- read.csv("C:/Users/Asus/OneDrive/Desktop/RStudio assessment/RNAseq-assessment/exercise1_counts.csv", 
+                   row.names = 1)
 
-# Load the sample description file (tab-delimited)
-sample_description <- read.delim("C:/Users/Asus/OneDrive/Desktop/LMS_RNAseq_short-master-2023-final/course/exercises/data/exercise1_sample_description.info", 
-                                 header = TRUE, sep = "\t")
+# Load the sample description
+sample_description <- read.table("C:/Users/Asus/OneDrive/Desktop/RStudio assessment/RNAseq-assessment/exercise1_sample_description.info", 
+                                 header = TRUE, sep = "\t", row.names = 1)
 
-# Create col_data using sample_description
-col_data <- sample_description
-rownames(col_data) <- col_data$sample
+# Set rownames of sample_description to match colnames of counts
+rownames(sample_description) <- colnames(counts)
 
-# Check dimensions of count_data and col_data
-dim(count_data)
-dim(col_data)
+# Check alignment between colnames and rownames
+all(colnames(counts) == rownames(sample_description))
+```
+```{r}
+# Fix missing 'condition' values
+sample_description[c("control_FFa1.bam", "control_FFa2.bam", "control_FFa3.bam"), "condition"] <- "control"
+sample_description[c("mutant_KOa1.bam", "mutant_KOa2.bam", "mutant_KOa3.bam"), "condition"] <- "KOa"
+sample_description[c("mutant_KOb1.bam", "mutant_KOb2.bam", "mutant_KOb3.bam"), "condition"] <- "KOb"
 
-# Preview the data
-head(count_data)
-head(col_data)
+# Ensure 'condition' column is a factor
+sample_description$condition <- factor(sample_description$condition, levels = c("control", "KOa", "KOb"))
 
-# Add the correct prefix and remove ".bam" from sample names in col_data
-col_data$sample <- paste(col_data$condition, col_data$sample, sep = "_")
-col_data$sample <- gsub(".bam$", "", col_data$sample)  # Remove ".bam" if it exists
+# Construct DESeqDataSet
+dds <- DESeqDataSetFromMatrix(countData = counts, 
+                              colData = sample_description, 
+                              design = ~ condition)
 
-# Reorder col_data so that its rows match the column names in count_data
-col_data <- col_data[match(colnames(count_data), col_data$sample), ]
+# Inspect the DESeqDataSet
+dds
+```
 
-# Check if the names now match
-all(colnames(count_data) == rownames(col_data))  # Should return TRUE
+```{r run-deseq, message=FALSE, warning=FALSE}
+# Run DESeq2 differential expression analysis
+dds <- DESeq(dds)
+```
+```{r}
+# Get results
+res <- results(dds)
 
-# Create a new data frame for the missing samples
-missing_samples <- data.frame(
-  filename = c("TMC_mutant_KOb1.bam", "TMC_mutant_KOb2.bam", "TMC_mutant_KOb3.bam"),
-  sample = c("KOb1", "KOb2", "KOb3"),
-  condition = c("KOa", "KOa", "KOa"),
-  batch = c("a", "b", "c"),
-  row.names = c("KOb1", "KOb2", "KOb3")
-)
+# View top results
+head(res)
+```
 
-# Add the new rows to col_data
-col_data <- rbind(col_data, missing_samples)
-
-# Reorder col_data so that its rows match the column names in count_data
-col_data <- col_data[match(colnames(count_data), col_data$sample), ]
-
-# Check if the names now match
-all(colnames(count_data) == rownames(col_data))  # Should return TRUE
 
 
