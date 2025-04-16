@@ -54,6 +54,145 @@ res <- results(dds)
 # View top results
 head(res)
 ```
+```{r}
+# Perform rlog transformation
+rlog_dds <- rlog(dds, blind = TRUE)
 
+# Perform variance stabilizing transformation (VST)
+vst_dds <- vst(dds, blind = TRUE)
+
+# Check the transformed data (optional)
+head(assay(rlog_dds))
+head(assay(vst_dds))
+```
+
+```{r}
+# Load pheatmap library (if not already loaded)
+library(pheatmap)
+
+# Get the top 40 most variable genes using rlog-transformed data
+rlog_data <- assay(rlog_dds)  # Access rlog-transformed data
+vst_data <- assay(vst_dds)    # Access vst-transformed data
+
+# Calculate the variance of each gene across samples
+rlog_var_genes <- apply(rlog_data, 1, var)
+vst_var_genes <- apply(vst_data, 1, var)
+
+# Get the indices of the top 40 genes by variance
+top_40_rlog_genes <- order(rlog_var_genes, decreasing = TRUE)[1:40]
+top_40_vst_genes <- order(vst_var_genes, decreasing = TRUE)[1:40]
+
+# Create heatmap for rlog-transformed data
+pheatmap(rlog_data[top_40_rlog_genes, ], 
+         scale = "row", 
+         clustering_distance_rows = "euclidean", 
+         clustering_distance_cols = "euclidean", 
+         clustering_method = "complete", 
+         show_rownames = TRUE, 
+         show_colnames = TRUE, 
+         main = "Heatmap of Top 40 Genes (rlog-transformed)")
+
+# Create heatmap for vst-transformed data
+pheatmap(vst_data[top_40_vst_genes, ], 
+         scale = "row", 
+         clustering_distance_rows = "euclidean", 
+         clustering_distance_cols = "euclidean", 
+         clustering_method = "complete", 
+         show_rownames = TRUE, 
+         show_colnames = TRUE, 
+         main = "Heatmap of Top 40 Genes (VST-transformed)")
+```
+```{r}
+# Load the required libraries
+library(DESeq2)
+library(ggplot2)
+
+# Perform PCA on the rlog-transformed data (or VST-transformed if preferred)
+rlog_data <- assay(rlog_dds)  # Access rlog-transformed data
+
+# Perform PCA
+pca_result <- prcomp(t(rlog_data))  # Transpose data so that samples are on rows
+
+# Plot PCA
+pca_df <- data.frame(PC1 = pca_result$x[, 1], PC2 = pca_result$x[, 2], 
+                     condition = sample_description$condition)
+
+# Generate PCA plot
+ggplot(pca_df, aes(x = PC1, y = PC2, color = condition)) +
+  geom_point(size = 3) +
+  labs(title = "PCA of RNA-seq Data", x = "PC1", y = "PC2") +
+  theme_minimal() +
+  theme(legend.position = "top")
+```
+```{r}
+# Load the required libraries
+library(DESeq2)
+library(ggplot2)
+
+# Perform PCA on the rlog-transformed data (already rlog-transformed as rlog_dds)
+rlog_data <- assay(rlog_dds)  # Access rlog-transformed data
+
+# Perform PCA
+pca_result <- prcomp(t(rlog_data))  # Transpose data so that samples are rows
+
+# Extract the proportion of variance explained by each principal component
+variance_explained <- (pca_result$sdev^2) / sum(pca_result$sdev^2)
+
+# Print variance explained by first two PCs
+variance_explained[1:2]
+
+# Create a data frame for the PCA results
+pca_df <- data.frame(PC1 = pca_result$x[, 1], PC2 = pca_result$x[, 2], 
+                     condition = sample_description$condition)
+
+# Plot PCA with variance explained on the axes
+ggplot(pca_df, aes(x = PC1, y = PC2, color = condition)) +
+  geom_point(size = 3) +
+  labs(title = "PCA of RNA-seq Data (rlog-transformed)", 
+       x = paste("PC1: ", round(variance_explained[1] * 100, 2), "% variance", sep = ""),
+       y = paste("PC2: ", round(variance_explained[2] * 100, 2), "% variance", sep = "")) +
+  theme_minimal() +
+  theme(legend.position = "top")
+```
+```{r}
+# Perform VST transformation
+vst_dds <- varianceStabilizingTransformation(dds, blind = FALSE)
+
+# Get the VST-transformed data
+vst_data <- assay(vst_dds)
+
+# Perform PCA on VST-transformed data
+pca_vst_result <- prcomp(t(vst_data))  # Transpose to treat samples as rows
+
+# Extract the proportion of variance explained by each principal component for VST
+variance_vst_explained <- (pca_vst_result$sdev^2) / sum(pca_vst_result$sdev^2)
+
+# Create a data frame for the VST PCA results
+pca_vst_df <- data.frame(PC1 = pca_vst_result$x[, 1], PC2 = pca_vst_result$x[, 2], 
+                         condition = sample_description$condition)
+
+# Plot PCA for rlog and VST transformation
+pca_rlog_df <- data.frame(PC1 = pca_result$x[, 1], PC2 = pca_result$x[, 2], 
+                          condition = sample_description$condition)
+
+# Create the plots side by side for comparison
+library(gridExtra)
+p1 <- ggplot(pca_rlog_df, aes(x = PC1, y = PC2, color = condition)) +
+  geom_point(size = 3) +
+  labs(title = "PCA of RNA-seq Data (rlog-transformed)", 
+       x = paste("PC1: ", round(variance_explained[1] * 100, 2), "% variance", sep = ""),
+       y = paste("PC2: ", round(variance_explained[2] * 100, 2), "% variance", sep = "")) +
+  theme_minimal()
+
+p2 <- ggplot(pca_vst_df, aes(x = PC1, y = PC2, color = condition)) +
+  geom_point(size = 3) +
+  labs(title = "PCA of RNA-seq Data (VST-transformed)", 
+       x = paste("PC1: ", round(variance_vst_explained[1] * 100, 2), "% variance", sep = ""),
+       y = paste("PC2: ", round(variance_vst_explained[2] * 100, 2), "% variance", sep = "")) +
+  theme_minimal()
+
+# Arrange both plots side by side
+grid.arrange(p1, p2, ncol = 2)
+```
 
 
